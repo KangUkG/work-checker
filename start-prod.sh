@@ -1,0 +1,1 @@
+MODE=prod&& node index.js
