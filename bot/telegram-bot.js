@@ -19,8 +19,16 @@ const CB_TYPE_CHECK = "CHECK";
 const CB_TYPE_TOTAL = "TOTAL";
 
 
-function initTelegramBot(token) {
-    const bot = new TelegramBot(token, { polling: true });
+function initTelegramBot(token, isWebHookMode, url) {
+
+    const option = isWebHookMode ? {} : { polling: true };
+    const bot = new TelegramBot(token, option);
+
+    if (parseInt(isWebHookMode) === 0) {
+        // This informs the Telegram servers of the new webhook.
+        bot.setWebHook(`${url}/bot${token}`);
+    }
+
 
     bot.setMyCommands([
         { command: '/check', description: '오늘 출근여부 확인' },
@@ -31,6 +39,13 @@ function initTelegramBot(token) {
     // 입력한 년, 월 출근 일수 반환
     bot.onText(/\/total/, (msg, _) => {
         const chatId = msg.chat.id;
+
+        // client 목록에 포함되어 있는지 확인
+        if (!checkValidUser(chatId)) {
+            bot.sendMessage(chatId, messages.error.unauthorizedUser);
+            return;
+        }
+
         const thisMonth = dateUtil.getDate("YYYYMM");
         const lastMonth = dateUtil.getLastMonth("YYYYMM");
 
@@ -50,9 +65,7 @@ function initTelegramBot(token) {
         const chatId = msg.chat.id;
 
         // client 목록에 포함되어 있는지 확인
-        console.log(clients, chatId);
-        const target = clients.find(client => client.id == chatId);
-        if (!target) {
+        if (!checkValidUser(chatId)) {
             bot.sendMessage(chatId, messages.error.unauthorizedUser);
             return;
         }
@@ -71,6 +84,7 @@ function initTelegramBot(token) {
     });
 
 
+    // total, check 관련 callback
     bot.on('callback_query', (callbackQuery) => {
 
         const action = JSON.parse(callbackQuery.data);
@@ -332,8 +346,13 @@ function initTelegramBot(token) {
 
 //     // 콜백 응답도 전송 (버튼 상태 업데이트용)
 //     bot.answerCallbackQuery(callbackQuery.id);
-
 // });
+
+function checkValidUser() {
+    const target = clients.find(client => client.id == chatId);
+    return target;
+}
+
 
 function loadWorkdays(path) {
     const rawdata = fileUtil.openFile(path);

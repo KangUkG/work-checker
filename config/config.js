@@ -1,5 +1,4 @@
 const dotenv = require('dotenv');
-const fileUtil = require("../utils/file-util");
 
 // MODE에 맞춰 환경변수 불러오기
 if (process.env.MODE === 'local') {
