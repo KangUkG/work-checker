@@ -4,6 +4,7 @@ const pth = require('path');
 const defaultPath = process.env.DEFAULT_FILE_PATH;
 
 function openFile(path) {
+    console.log("hihi ----------------------------------", path, defaultPath);
     const filePath = pth.join(defaultPath, path);
     try {
         const file = fs.readFileSync(filePath, "utf-8");
